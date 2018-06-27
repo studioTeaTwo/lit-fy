@@ -6,8 +6,20 @@ export class IvytestComponent extends Litfy {
   private class = 'classname';
   private color = 'red';
   private title = 'Lit-fy';
+  private value = 'initial';
 
   private header = html`<h1>${this.title}</h1>`;
+
+  // render(): TemplateResult {
+  //   return html`
+  //     <input type="text" on-change=${(e) => {
+  //       console.log(e.target.value, this.value);
+  //       this.value = e.target.value;
+  //     }}>
+  //     <button type="button" on-click=${(e) => window.alert('clicked')}>Click Me</button>
+  //     <p>${this.value}</p>
+  //   `;
+  // }
 
   render(): TemplateResult {
     return html`
@@ -15,10 +27,11 @@ export class IvytestComponent extends Litfy {
       <div test test2>
         テキスト
         <!-- コメント -->
-        <span>${this.name}</span>
-        <p class="test ${this.class}" style="color: ${this.color};">${this.name}</p>
+        <span class="test ${this.class}" style="color: ${this.color};">${this.name}テキスト2</span>
+        <input type="text" on-change=${(e) => this.value = e.target.value}>
+        <button type="button" on-click=${(e) => window.alert('clicked')}>Click Me</button>
       </div>
-      <div>テキスト2</div>
+      <div>${this.value}</div>
       テキスト3
     `;
   }
