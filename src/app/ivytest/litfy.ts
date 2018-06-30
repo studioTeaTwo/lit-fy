@@ -9,12 +9,18 @@ import {
   ɵrenderComponent as renderComponent,
   ɵE as elementStart,
   ɵe as elementEnd,
+  ɵa as elementAttribute,
+  ɵp as elementProperty,
   ɵT as text,
   ɵt as textBinding,
   ɵp as property,
   ɵL as listener,
+  ɵld as load,
   ɵi1 as interpolate,
   ɵRenderFlags as RenderFlags,
+  ɵcR as containerRefreshStart,
+  ɵcr as containerRefreshEnd,
+  ɵQ as query,
 } from '@angular/core';
 import {
   TemplateResult,
@@ -31,8 +37,11 @@ import {
 } from 'lit-html';
 import {
   EventPart,
-  PropertyPart
+  PropertyPart,
+  BooleanAttributePart
 } from 'lit-html/lib/lit-extended';
+import { RElement } from '@angular/core/src/render3/interfaces/renderer';
+import { LNode } from '@angular/core/src/render3/interfaces/node';
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -53,7 +62,7 @@ export class Litfy {
     if (renderFlag & RenderFlags.Create) {
       _instance = instance;
       instance.update(templateResult.values);
-      console.log('create', instance);
+      console.log('create', nodeList, instance);
       let index = 0;
       // First render, create a virtual node of ivy from nodeList.
       const apply = (_nodeList) => _nodeList.forEach(node => {
@@ -63,16 +72,20 @@ export class Litfy {
           const attrs = getAttribute(element);
           console.log('elementStart', index, element.nodeName, attrs);
           elementStart(index, element.nodeName, attrs);
-          const eventListener = instance._parts.length > 0 ? getListener(element, instance._parts) : null;
-          if (eventListener) {
-            console.log('listener', eventListener.eventName, eventListener.listenerFn);
-            listener(eventListener.eventName, eventListener.listenerFn);
+          const eventListeners = instance._parts.length > 0 ? getListeners(element, instance._parts) : null;
+          if (eventListeners) {
+            for (const eventListener of eventListeners) {
+              console.log('listener', eventListener.eventName, eventListener.listenerFn);
+              listener(eventListener.eventName, eventListener.listenerFn);
+            }
           }
-          const textBind = getTextBinding(element, instance._parts);
-          if (textBind) {
-            console.log('text(binding)', index, textBind._previousValue, _nodeList);
-            textBinding(index, textBind._previousValue);
-          }
+          // const textBinds = getTextBinding(element, instance._parts);
+          // if (textBinds) {
+          //   for (const textBind of textBinds) {
+          //     console.log('text(binding)', index, textBind._previousValue, _nodeList);
+          //     textBinding(index, textBind._previousValue);
+          //   }
+          // }
           index++;
           // Recur if having childNodes.
           if (element.hasChildNodes()) {
@@ -83,7 +96,7 @@ export class Litfy {
           elementEnd();
         } else if (node.nodeType === TEXT_NODE) {
           if (node.textContent !== '') {
-            console.log('text(raw)', index, node.textContent, _nodeList, getTextBinding(node.parentElement, instance._parts));
+            console.log('text(raw)', index, node.textContent, getTextBinding(node.parentElement, instance._parts));
             text(index, node.textContent);
             index++;
           }
@@ -109,7 +122,7 @@ const nodeFactory = (templateResult: TemplateResult): {
   const template = defaultTemplateFactory(templateResult);
   const instance = new TemplateInstance(template, templateResult.partCallback, defaultTemplateFactory);
   const nodeList = instance._clone().childNodes;
-  console.log(templateResult, template, instance, instance._parts.length);
+  console.log(templateResult, template, instance, nodeList, instance._parts.length);
   return {nodeList, instance};
 };
 
@@ -124,49 +137,46 @@ const getAttribute = (element: Element): string[] => {
   return attrs;
 };
 
-const getListener = (element: Element, parts: Part[]): IvyEventPart => {
-  return parts.find(part =>
-    part instanceof IvyEventPart && part.element === element
-  ) as IvyEventPart;
+const getListeners = (element: Element, parts: Part[]): IvyEventPart[] => {
+  const result = [];
+  const seek = (_parts: Part[]) => _parts.forEach(part => {
+    if (part instanceof IvyEventPart && part.element === element) {
+      result.push(part);
+    }
+    if (part instanceof NodePart && part._previousValue instanceof TemplateInstance) {
+      seek(part._previousValue._parts);
+    }
+  });
+  seek(parts);
+  return result.length > 0 ? result : null;
 };
 
-const getTextBinding = (element: Element, parts: Part[]): NodePart => {
-  return parts.find(part =>
+const getTextBinding = (element: Element, parts: Part[]): NodePart[] => {
+  return parts.filter(part =>
     part instanceof NodePart && part.startNode.parentElement === element
-  ) as NodePart;
+  ) as NodePart[];
 };
 
 const updateNode = (nodeList: NodeList, instance) => {
   let index = 0;
   const apply = (_nodeList) => _nodeList.forEach(node => {
-    // console.log(_nodeList, node);
     if (node.nodeType === ELEMENT_NODE) {
       const element = node as Element;
-      // const attrs = getAttribute(element);
-      // console.log('elementStart', index, element.nodeName, attrs);
-      // elementStart(index, element.nodeName, attrs);
-      const eventListener = instance._parts.length > 0 ? getListener(element, instance._parts) : null;
-      if (eventListener) {
-        console.log('listener', eventListener.eventName, eventListener.listenerFn);
-        // listener(eventListener.eventName, eventListener.listenerFn);
-      }
-      const textBind = getTextBinding(element, instance._parts);
-      if (textBind) {
-        console.log('text(binding)', index, textBind._previousValue);
-        textBinding(index, textBind._previousValue);
+      if (element.attributes) {
+        for (let i = 0; i < element.attributes.length; i++) {
+          console.log('attribute', index, element.attributes[i].nodeName, element.attributes[i].nodeValue);
+          elementAttribute(index, element.attributes[i].nodeName, element.attributes[i].nodeValue);
+        }
       }
       index++;
       // Recur if having childNodes.
       if (element.hasChildNodes()) {
         apply(element.childNodes);
       }
-      // Close a tag
-      // console.log('elemntClose');
-      // elementEnd();
     } else if (node.nodeType === TEXT_NODE) {
-      if (node.textContent !== '' && (!node.parentElement || !getTextBinding(node.parentElement, instance._parts))) {
+      if (node.textContent !== '') {
         console.log('text(raw)', index, node.textContent, getTextBinding(node.parentElement, instance._parts));
-        // text(index, node.textContent);
+        textBinding(index, node.textContent);
         index++;
       }
     }
@@ -217,14 +227,14 @@ const IvyExtendedPartCallback =
       }
       const lastChar = templatePart.name!.substr(templatePart.name!.length - 1);
       if (lastChar === '$') {
-        // const name = templatePart.name!.slice(0, -1);
-        // return new AttributePart(
-        //     instance, node as Element, name, templatePart.strings!);
+        const name = templatePart.name!.slice(0, -1);
+        return new AttributePart(
+            instance, node as Element, name, templatePart.strings!);
       }
       if (lastChar === '?') {
-        // const name = templatePart.name!.slice(0, -1);
-        // return new BooleanAttributePart(
-        //     instance, node as Element, name, templatePart.strings!);
+        const name = templatePart.name!.slice(0, -1);
+        return new BooleanAttributePart(
+            instance, node as Element, name, templatePart.strings!);
       }
       return new PropertyPart(
           instance,
