@@ -1,0 +1,3 @@
+[submodule "lib/lit-html"]
+	path = lib/lit-html
+	url = git@github.com:Polymer/lit-html.git

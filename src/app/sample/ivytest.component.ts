@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { Litfy, html, TemplateResult } from './litfy';
+import { Litfy, html, TemplateResult } from '../../../lib/public_api';
 
 export class IvytestComponent extends Litfy {
   cdr;

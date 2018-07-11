@@ -29,27 +29,25 @@ import {
 } from '@angular/core';
 import {
   TemplateResult,
-  Template,
   TemplateInstance,
   Part,
-  TemplatePart,
   AttributePart,
-  TemplateContainer,
   defaultTemplateFactory,
-  defaultPartCallback,
-  getValue,
   NodePart,
-  noChange,
-} from './lit-extended-for-ivy';
+} from './lit-html/src/lit-html';
 import {
-  EventPart,
-  PropertyPart,
-  BooleanAttributePart
-} from 'lit-html/lib/lit-extended';
-import { RElement } from '@angular/core/src/render3/interfaces/renderer';
-import { LNode } from '@angular/core/src/render3/interfaces/node';
-import { LView, TView } from '@angular/core/src/render3/interfaces/view';
-import { LContainer } from '@angular/core/src/render3/interfaces/container';
+  IvyEventPart,
+} from './lit-extended-for-ivy';
+
+interface SyntaxTree {
+  nodeList: NodeList;
+  instance: TemplateInstance;
+}
+
+interface Attr {
+  name: string;
+  value: string;
+}
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -59,13 +57,8 @@ const DOCUMENT_FRAGMENT_NODE = 11;
 let _instance;
 let serialViewNumber = 0;
 
-interface Attr {
-  name: string;
-  value: string;
-}
 
 export class Litfy {
-
   static litToIvy(renderFlag, component) {
     console.log('initial', renderFlag, component);
 
@@ -87,8 +80,9 @@ export class Litfy {
   }
 }
 
+
 // First render, create a virtual node of ivy from nodeList.
-const createNode = (nodeList, instance, component) => {
+const createNode = (nodeList: NodeList, instance: TemplateInstance, component: Component): void => {
   let index = 0;
   const apply = (_nodeList) => _nodeList.forEach(node => {
 
@@ -142,7 +136,7 @@ const createNode = (nodeList, instance, component) => {
 };
 
 // Update the virtual node of ivy, or Refresh a container.
-const updateNode = (nodeList: NodeList, instance: TemplateInstance, component: Component, templateResult: TemplateResult) => {
+const updateNode = (nodeList: NodeList, instance: TemplateInstance, component: Component, templateResult: TemplateResult): void => {
   let index = 0;
   let childTemplateCount = 0;
   const apply = (_nodeList) => _nodeList.forEach(node => {
@@ -185,6 +179,7 @@ const updateNode = (nodeList: NodeList, instance: TemplateInstance, component: C
           // Delete embedded view
         }
 
+        // Close a container.
         console.log('embeddedEnd');
         embeddedViewEnd();
         containerRefreshEnd();
@@ -200,10 +195,7 @@ const updateNode = (nodeList: NodeList, instance: TemplateInstance, component: C
   apply(nodeList);
 };
 
-const nodeFactory = (templateResult: TemplateResult): {
-  nodeList: NodeList;
-  instance: TemplateInstance;
-} => {
+const nodeFactory = (templateResult: TemplateResult): SyntaxTree => {
   const template = defaultTemplateFactory(templateResult);
   const instance = new TemplateInstance(template, templateResult.partCallback, defaultTemplateFactory);
   const nodeList = instance._clone().childNodes;
@@ -211,14 +203,14 @@ const nodeFactory = (templateResult: TemplateResult): {
   return {nodeList, instance};
 };
 
-const nodeFactoryOfChildTemplate = (node: Node, parts: Part[]) => {
+const nodeFactoryOfChildTemplate = (node: Node, parts: Part[]): SyntaxTree => {
   const childTemplate: NodePart = parts.find(part =>
     part instanceof NodePart && part.startNode === node && part._previousValue instanceof TemplateInstance
   ) as NodePart;
   console.log(childTemplate);
   return childTemplate ? {
-    nodeList: childTemplate._previousValue._clone().childNodes,
-    instance: childTemplate._previousValue
+    nodeList: (childTemplate._previousValue as TemplateInstance)._clone().childNodes,
+    instance: childTemplate._previousValue as TemplateInstance
    } : undefined;
 };
 
@@ -285,41 +277,3 @@ const isContainer = (index): boolean => {
   const node: any = load(index);
   return node.data && node.data.hasOwnProperty('views');
 };
-
-class IvyEventPart implements Part {
-  instance: TemplateInstance;
-  element: Element;
-  eventName: string;
-  listenerFn: any;
-
-  constructor(instance: TemplateInstance, element: Element, eventName: string) {
-    this.instance = instance;
-    this.element = element;
-    this.eventName = eventName;
-  }
-
-  setValue(value: any): void {
-    this.listenerFn = getValue(this, value);
-  }
-}
-
-const IvyExtendedPartCallback =
-  (instance: TemplateInstance, templatePart: TemplatePart, node: Node): Part => {
-    if (templatePart.type === 'attribute') {
-      if (templatePart.rawName!.substr(0, 3) === 'on-') {
-        const eventName = templatePart.rawName!.slice(3);
-        return new IvyEventPart(instance, node as Element, eventName);
-      }
-      return new AttributePart(
-        instance,
-        node as Element,
-        templatePart.name!,
-        templatePart.strings!
-      );
-    }
-    return defaultPartCallback(instance, templatePart, node);
-  };
-
-export { TemplateResult } from './lit-extended-for-ivy';
-export const html = (strings: TemplateStringsArray, ...values: any[]) =>
-    new TemplateResult(strings, values, 'html', IvyExtendedPartCallback);

@@ -1,23 +1,16 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, ɵrenderComponent as renderComponent, ɵdefineComponent as defineComponent, } from '@angular/core';
+import { NgModule, ɵrenderComponent as renderComponent } from '@angular/core';
 
-import { AppComponent } from './app.component';
-import { IvytestComponent } from './ivytest/ivytest.component';
-
-// console.log('あああああ', ivytest);
+import { IvytestComponent } from './sample/ivytest.component';
 
 @NgModule({
-  declarations: [
-    // AppComponent,
-  ],
+  declarations: [],
   imports: [
     BrowserModule
   ],
   entryComponents: [],
   providers: [],
-  bootstrap: [
-    // AppComponent
-  ]
+  bootstrap: []
 })
 export class AppModule {
   ngDoBootstrap() {
