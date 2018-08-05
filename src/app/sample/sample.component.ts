@@ -4,9 +4,9 @@ import {
   ChangeDetectorRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { Litfy, html, TemplateResult } from '../../../lib/public_api';
+import { Litfy, html, TemplateResult } from 'lib/public_api';
 
-export class IvytestComponent extends Litfy {
+export class SampleComponent extends Litfy {
   cdr;
   private name = 'Hello, ivy';
   private class = 'active';
@@ -65,10 +65,10 @@ export class IvytestComponent extends Litfy {
 
   // tslint:disable-next-line:member-ordering
   static ngComponentDef = defineComponent({
-    type: IvytestComponent,
+    type: SampleComponent,
     selectors: [['ivy-test']],
-    factory: () => new IvytestComponent(),
-    template: IvytestComponent.litToIvy,
+    factory: () => new SampleComponent(),
+    template: SampleComponent.litToIvy,
     // inputs: { ponyModel: 'ponyModel' },
     // directives: () => [ImageComponent];
     // changeDetection: ChangeDetectionStrategy.OnPush,

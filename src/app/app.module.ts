@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, ɵrenderComponent as renderComponent } from '@angular/core';
 
-import { IvytestComponent } from './sample/ivytest.component';
+import { SampleComponent } from './sample/sample.component';
 
 @NgModule({
   declarations: [],
@@ -14,6 +14,6 @@ import { IvytestComponent } from './sample/ivytest.component';
 })
 export class AppModule {
   ngDoBootstrap() {
-    renderComponent(IvytestComponent, { host: 'app-root'});
+    renderComponent(SampleComponent, { host: 'app-root'});
   }
 }
