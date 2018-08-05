@@ -275,5 +275,6 @@ const isChildTemplate = (node: Node, parts: Part[]): boolean => {
 
 const isContainer = (index): boolean => {
   const node: any = load(index);
-  return node.data && node.data.hasOwnProperty('views');
+  // FIXME: how to judge container.
+  return !!node.data;
 };
