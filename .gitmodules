@@ -1,3 +1,4 @@
 [submodule "lib/lit-html"]
 	path = lib/lit-html
-	url = git@github.com:Polymer/lit-html.git
+	url = https://github.com/studioTeaTwo/lit-html.git
+	branch = lit-fy
