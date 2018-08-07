@@ -34,7 +34,7 @@ import {
   AttributePart,
   defaultTemplateFactory,
   NodePart,
-} from './lit-html/src/lit-html';
+} from './lit-html/src/core';
 import {
   IvyEventPart,
 } from './lit-extended-for-ivy';

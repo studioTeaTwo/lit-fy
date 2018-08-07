@@ -6,7 +6,7 @@ import {
   AttributePart,
   defaultPartCallback,
   getValue,
-} from './lit-html/src/lit-html';
+} from './lit-html/src/core';
 
 export class IvyEventPart implements Part {
   instance: TemplateInstance;
