@@ -3,7 +3,7 @@ import {
   ɵRenderFlags as RenderFlags,
   ɵEe as element,
 } from '@angular/core';
-import { renderToHtml } from '../test-utils/render_utils.spec';
+import { renderToHtml } from '../../testing/render_utils';
 import { Litfy, html, TemplateResult } from 'lib/public_api';
 
 describe('static html template test', () => {

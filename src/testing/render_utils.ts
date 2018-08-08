@@ -19,7 +19,7 @@ import {RElement, RText, Renderer3, RendererFactory3, domRendererFactory3} from 
 import {Sanitizer} from '@angular/core/src/sanitization/security';
 import {Type} from '@angular/core/src/type';
 
-import {getRendererFactory2} from './imported_renderer2.spec';
+import {getRendererFactory2} from './imported_renderer2';
 
 export abstract class BaseFixture {
   hostElement: HTMLElement;
